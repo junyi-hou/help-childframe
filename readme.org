@@ -1,0 +1,1 @@
+* help-childframe.el: display help text in a childframe
