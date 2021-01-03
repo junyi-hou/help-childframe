@@ -103,7 +103,19 @@
 
 (defun help-childframe--help-backend (symbol)
   "Return the buffer string from `describe-*' commands."
-  )
+  (let ;; temporily shut down all pop-up window
+      ((display-buffer-overriding-action
+        '(display-buffer-no-window (allow-no-window . t))))
+    (cond ((and (boundp symbol) (fboundp symbol))
+           (if (y-or-n-p "%s is a both a variable and a callable, show variable?" symbol)
+               (describe-variable symbol)
+             (describe-function symbol)))
+          ((fboundp symbol) (describe-function symbol))
+          ((boundp symbol) (describe-variable symbol))
+          ((facep symbol) (describe-face symbol))
+          (t (user-error "Not bound: %S" symbol)))
+    (with-current-buffer (help-buffer)
+      (buffer-string))))
 
 (defun help-childframe--helpful-backend (symbol)
   "Return the buffer string from `helpful-symbol' command."
