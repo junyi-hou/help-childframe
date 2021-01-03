@@ -5,7 +5,7 @@
 ;;; Code:
 
 (defgroup help-childframe nil
-  "Group for customize flymake childframe."
+  "Group for customize help childframe."
   :prefix "help-childframe-")
 
 (defcustom help-childframe-width 50
@@ -74,7 +74,7 @@
     (desktop-dont-save . t)
     (skip-taskbar . t)
     (minibuffer . nil))
-  "The initial frame parameters for `flymake-childframe--frame'.")
+  "The initial frame parameters for `help-childframe--frame'.")
 
 (defvar help-childframe--frame nil)
 
@@ -100,7 +100,7 @@
 ;;  see `help-childframe--eglot-backend' for example.
 ;;; ===============================
 
-(defun help-chlidframe--help-backend (symbol)
+(defun help-childframe--help-backend (symbol)
   "Return the buffer string from `describe-*' commands."
   )
 
@@ -108,7 +108,7 @@
   "Return the buffer string from `helpful-symbol' command."
   )
 
-(defun help-childframe--eglot-backend (symbol)
+(defun help-childframe--eglot-backend (_symbol)
   "Return the buffer string from `eglot-help-at-point' command."
   (when (and (featurep 'eglot) eglot--managed-mode)
     (eglot--dbind ((Hover) contents range)
@@ -121,19 +121,17 @@
 ;;  minor-mode
 ;;; ===============================
 
-
-
 (defun help-childframe--set-frame-size ()
-  "Return the pixel size of `help-childframe--frame' to fit `help-childframe--buffer'. Honoring settings in `help-chlidframe-width' and `help-childframe-max-height'."
+  "Return the pixel size of `help-childframe--frame' to fit `help-childframe--buffer'. Honoring settings in `help-childframe-width' and `help-childframe-max-height'."
   (let* ((text-length
-          (with-current-buffer (get-buffer-create help-chlidframe--buffer)
+          (with-current-buffer (get-buffer-create help-childframe--buffer)
             (length (buffer-string))))
-         (text-height (max help-chlidframe-max-height
-                           (1+ (ceiling (/ text-length help-childframe-width)))))
+         (text-height (min help-childframe-max-height
+                           (+ 2 (ceiling (/ text-length help-childframe-width)))))
          (text-pixel-height (* text-height (default-font-height))))
-    `(,(* help-childframe-width (default-font-width) . ,text-pixel-height))))
+    `(,(* (default-font-width) help-childframe-width) ,text-pixel-height)))
 
-(defvar-local help-childframe--backend)
+(defvar-local help-childframe--backend nil)
 (defun help-childframe--determine-backend (&optional current-major-mode)
   "Determine which backend function to use according to `help-childframe-backend-alist'."
   (let ((current-major-mode (or current-major-mode major-mode)))
@@ -160,19 +158,19 @@
              help-childframe-frame-transient-map t #'help-childframe-hide))))
   
   ;; Then create frame if needed
-  (unless (and flymake-childframe--frame (frame-live-p flymake-childframe--frame))
-    (setq flymake-childframe--frame
-          (make-frame flymake-childframe--init-parameters)))
+  (unless (and help-childframe--frame (frame-live-p help-childframe--frame))
+    (setq help-childframe--frame
+          (make-frame help-childframe--init-parameters)))
 
-  (with-selected-frame flymake-childframe--frame
+  (with-selected-frame help-childframe--frame
     (delete-other-windows)
-    (switch-to-buffer flymake-childframe--buffer))
+    (switch-to-buffer help-childframe--buffer))
 
   ;; move frame to desirable position
   (apply 'set-frame-size
-         `(,help-childframe--frame ,@(help-childframe--set-frame-size)))
+         `(,help-childframe--frame ,@(help-childframe--set-frame-size) t))
   (apply 'set-frame-position
-         `(,help-childframe--frame ,@(help-chlidframe-position-fn)))
+         `(,help-childframe--frame ,@(help-childframe-position-fn)))
   (set-face-background 'internal-border "gray80" help-childframe--frame)
 
   ;; display buffer
@@ -211,7 +209,7 @@
   "Run BODY in `help-childframe--frame' and `help-childframe--buffer'."
   (declare (indent 1))
   `(with-selected-frame help-childframe--frame
-     (with-current-buffer help-childframe--buffer
+     (with-current-buffer (get-buffer-create help-childframe--buffer)
        ,@body)))
 
 (defun help-childframe-next-three-lines ()
