@@ -88,8 +88,8 @@
         (window-edge (nth 2 (window-pixel-edges))))
     (if (= edge window-edge)
         ;; display on the top left corner
-        '(0 . 0)
-      `(,(- edge (* help-childframe-width (default-font-width))) . 0))))
+        '(20 0)
+      `(,(- edge 20 (* help-childframe-width (default-font-width))) 0))))
 
 ;;; ===============================
 ;;  backends
