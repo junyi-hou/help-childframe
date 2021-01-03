@@ -8,7 +8,7 @@
   "Group for customize help childframe."
   :prefix "help-childframe-")
 
-(defcustom help-childframe-width 60
+(defcustom help-childframe-width 80
   "The width for the childframe, in unit of character (not pixel)"
   :type 'integer
   :group 'help-childframe)
@@ -85,11 +85,12 @@
 (defun help-childframe-position-fn ()
   "Return the pixel position on where the childframe should pop up."
   (let ((edge (frame-pixel-width))
-        (window-edge (nth 2 (window-pixel-edges))))
-    (if (= edge window-edge)
-        ;; display on the top left corner
-        '(0 0)
-      `(,(- edge 20 (* help-childframe-width (default-font-width))) 0))))
+        (left-window-edge (nth 1 (window-pixel-edges))))
+    (if (= 0 left-window-edge) ;; left-window
+        ;; display on the top right corner
+        `(,(- edge 20 (* help-childframe-width (default-font-width))) 0)
+      '(0 0) ;; display on the top left corner
+      )))
 
 ;;; ===============================
 ;;  backends
