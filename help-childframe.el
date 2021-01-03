@@ -8,7 +8,7 @@
   "Group for customize help childframe."
   :prefix "help-childframe-")
 
-(defcustom help-childframe-width 50
+(defcustom help-childframe-width 60
   "The width for the childframe, in unit of character (not pixel)"
   :type 'integer
   :group 'help-childframe)
@@ -88,7 +88,7 @@
         (window-edge (nth 2 (window-pixel-edges))))
     (if (= edge window-edge)
         ;; display on the top left corner
-        '(20 0)
+        '(0 0)
       `(,(- edge 20 (* help-childframe-width (default-font-width))) 0))))
 
 ;;; ===============================
@@ -106,7 +106,33 @@
 
 (defun help-childframe--helpful-backend (symbol)
   "Return the buffer string from `helpful-symbol' command."
-  )
+  (let ;; temporily shut down all pop-up window
+      ((display-buffer-overriding-action
+        '(display-buffer-no-window (allow-no-window . t)))
+       (c-var-sym (helpful--convert-c-name symbol t))
+       (c-fn-sym (helpful--convert-c-name symbol nil))
+       callable-p)
+    (cond
+     ((and (boundp symbol) (fboundp symbol))
+      (if (y-or-n-p
+           (format "%s is a both a variable and a callable, show variable?"
+                   symbol))
+          (helpful-variable symbol)
+        (helpful-callable symbol)
+        (setq callable-p t)))
+     ((fboundp symbol)
+      (helpful-callable symbol) (setq callable-p t) )
+     ((boundp symbol)
+      (helpful-variable symbol))
+     ((and c-fn-sym (fboundp c-fn-sym))
+      (helpful-callable c-fn-sym) (setq callable-p t))
+     ((and c-var-sym (boundp c-var-sym))
+      (helpful-variable c-var-sym))
+     (t
+      (user-error "Not bound: %S" symbol)))
+    ;; now return the buffer content
+    (with-current-buffer (helpful--buffer symbol callable-p)
+      (buffer-string))))
 
 (defun help-childframe--eglot-backend (_symbol)
   "Return the buffer string from `eglot-help-at-point' command."
@@ -147,6 +173,7 @@
     (with-current-buffer (get-buffer-create help-childframe--buffer)
       (erase-buffer)
       (insert content)
+      (goto-char (point-min))
       (setq-local cursor-type nil)
       (setq-local cursor-in-non-selected-windows nil)
       (setq-local mode-line-format nil)
@@ -207,7 +234,7 @@
 
 (defmacro help-childframe-command (&rest body)
   "Run BODY in `help-childframe--frame' and `help-childframe--buffer'."
-  (declare (indent 1))
+  (declare (indent 0))
   `(with-selected-frame help-childframe--frame
      (with-current-buffer (get-buffer-create help-childframe--buffer)
        ,@body)))
