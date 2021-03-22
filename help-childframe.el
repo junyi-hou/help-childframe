@@ -27,7 +27,7 @@
     (define-key map (kbd "C-d") 'help-childframe-scroll-down)
     (define-key map (kbd "C-e") 'help-childframe-next-xref)
     (define-key map (kbd "C-y") 'help-childframe-prev-xref)
-    (define-key map (kbd "<return>") 'help-childframe-pop-source)
+    (define-key map (kbd "<return>") 'help-childframe-pop-help)
     (define-key map (kbd "<C-g>") 'help-childframe-hide)
     (define-key map (kbd "<escape>") 'help-childframe-hide)
     map)
@@ -160,21 +160,16 @@
 ;;  minor-mode
 ;;; ===============================
 
-(defun help-childframe--set-frame-size ()
-  "Return the pixel size of `help-childframe--frame' to fit `help-childframe--buffer'. Honoring settings in `help-childframe-width' and `help-childframe-max-height'."
-  (let* ((text-length
-          (with-current-buffer (get-buffer-create help-childframe--buffer)
-            (length (buffer-string))))
-         (text-height (min help-childframe-max-height
-                           (+ 2 (ceiling (/ text-length help-childframe-width)))))
-         (text-pixel-height (* text-height (default-font-height))))
-    `(,(* (default-font-width) help-childframe-width) ,text-pixel-height)))
-
 (defvar-local help-childframe--backend nil)
-(defun help-childframe--determine-backend (&optional current-major-mode)
-  "Determine which backend function to use according to `help-childframe-backend-alist'."
-  (let ((current-major-mode (or current-major-mode major-mode)))
-    (cdr (assq current-major-mode help-childframe-backend-alist))))
+(defvar-local help-childframe--old-buffer-local-variables nil)
+
+;;;###autoload
+(define-minor-mode help-childframe-mode
+  "Use childframe to display help text."
+  nil nil nil
+  (if help-childframe-mode
+      (setq help-childframe--backend (help-childframe--determine-backend))
+    (setq help-childframe--backend nil)))
 
 ;;;###autoload
 (defun help-childframe-show (symbol)
@@ -187,6 +182,8 @@
       (erase-buffer)
       (insert content)
       (goto-char (point-min))
+
+      ;; apply changes in buffer-local variables
       (setq-local cursor-type nil)
       (setq-local cursor-in-non-selected-windows nil)
       (setq-local mode-line-format nil)
@@ -219,13 +216,20 @@
 
   (make-frame-visible help-childframe--frame))
 
-;;;###autoload
-(define-minor-mode help-childframe-mode
-  "Use childframe to display help text."
-  nil nil nil
-  (if help-childframe-mode
-      (setq help-childframe--backend (help-childframe--determine-backend))
-    (setq help-childframe--backend nil)))
+(defun help-childframe--set-frame-size ()
+  "Return the pixel size of `help-childframe--frame' to fit `help-childframe--buffer'. Honoring settings in `help-childframe-width' and `help-childframe-max-height'."
+  (let* ((text-length
+          (with-current-buffer (get-buffer-create help-childframe--buffer)
+            (length (buffer-string))))
+         (text-height (min help-childframe-max-height
+                           (+ 2 (ceiling (/ text-length help-childframe-width)))))
+         (text-pixel-height (* text-height (default-font-height))))
+    `(,(* (default-font-width) help-childframe-width) ,text-pixel-height)))
+
+(defun help-childframe--determine-backend (&optional current-major-mode)
+  "Determine which backend function to use according to `help-childframe-backend-alist'."
+  (let ((current-major-mode (or current-major-mode major-mode)))
+    (cdr (assq current-major-mode help-childframe-backend-alist))))
 
 ;;; ===============================
 ;;  commands
@@ -275,9 +279,16 @@
     (scroll-up (max 1 (/ (1- (window-height (selected-window))) 2)))))
 
 (defun help-childframe-pop-help ()
-  "Hide the childframe, pop to `help-childframe--current-help' in another window."
+  "Hide the childframe, write its content to `*help-childframe*' buffer in another window."
   (interactive)
-  )
+  (help-childframe-hide)
+  (with-current-buffer (get-buffer-create "*help-childframe*")
+    (special-mode)
+    (let ((inhibit-read-only t))
+      (delete-region (point-min) (point-max))
+      (insert (with-current-buffer help-childframe--buffer
+                (buffer-string)))))
+  (pop-to-buffer "*help-childframe*"))
 
 (provide 'help-childframe)
 ;;; help-childframe.el ends here
