@@ -172,6 +172,16 @@
     (setq help-childframe--backend nil)))
 
 ;;;###autoload
+(defun help-childframe-enable ()
+  "Enable `help-childframe-mode' if `major-mode' of the buffer is registered in `help-childframe-backend-alist'."
+  (when (assq major-mode help-childframe-backend-alist)
+    (help-childframe-mode 1)))
+
+;;;###autoload
+(define-global-minor-mode global-help-childframe-mode help-childframe-mode
+  help-childframe-enable)
+
+;;;###autoload
 (defun help-childframe-show (symbol)
   "Show help for SYMBOL."
   (interactive (list (symbol-at-point)))
