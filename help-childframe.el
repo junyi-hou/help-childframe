@@ -287,7 +287,8 @@
     (let ((inhibit-read-only t))
       (delete-region (point-min) (point-max))
       (insert (with-current-buffer help-childframe--buffer
-                (buffer-string)))))
+                (buffer-string))))
+    (goto-char (point-min)))
   (pop-to-buffer "*help-childframe*"))
 
 (provide 'help-childframe)
