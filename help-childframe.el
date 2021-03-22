@@ -89,8 +89,8 @@
     (if (= 0 left-window-edge) ;; left-window
         ;; display on the top right corner
         `(,(- edge 20 (* help-childframe-width (default-font-width))) 0)
-      '(0 0) ;; display on the top left corner
-      )))
+      ;; display on the top left corner
+      '(0 0))))
 
 ;;; ===============================
 ;;  backends
@@ -196,7 +196,7 @@
       (setq help-childframe--restore-keymap-fn
             (set-transient-map
              help-childframe-frame-transient-map t #'help-childframe-hide))))
-  
+
   ;; Then create frame if needed
   (unless (and help-childframe--frame (frame-live-p help-childframe--frame))
     (setq help-childframe--frame
@@ -224,8 +224,8 @@
   "Use childframe to display help text."
   nil nil nil
   (if help-childframe-mode
-      (setq-local help-childframe--backend nil)
-    (setq help-childframe--backend (help-childframe--determine-backend))))
+      (setq help-childframe--backend (help-childframe--determine-backend))
+    (setq help-childframe--backend nil)))
 
 ;;; ===============================
 ;;  commands
