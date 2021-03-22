@@ -1,1 +1,47 @@
-* help-childframe.el: display help text in a childframe
+* help-childframe.el: display help buffer in a childframe
+
+Putting help buffer in a childframe.
+
+Highlights:
+
++ single entry point ~help-childframe-show~
++ scrolling the frame displaying help context to quickly read through the help text
++ support multiple backends (~help-mode~, ~helpful-mode~, ~eglot~) via ~help-childframe-backend-alist~.
+
+* Installation
+
+With ~straight.el~ with ~use-package~:
+
+#+begin_src emacs-lisp
+  (use-package help-childframe
+    :straight '(help-childframe :host github :repo "junyi-hou/help-childframe.el"))
+#+end_src
+
+Manually:
+
+#+begin_src shell
+  git clone https://github.com/junyi-hou/help-childframe.el.git
+#+end_src
+
+Then in ~emacs~:
+
+#+begin_src emacs-lisp
+  (add-to-list 'load-path PATH-TO-CLONED-REPO)
+  (require 'help-childframe)
+#+end_src
+
+* Useage
+
+~M-x helpful-childframe-show~, which shows help text for ~symbol-at-point~.
+
+* Customization
+
+TODO
+
+* Commands
+
+TODO
+
+* License
+
+GPL v3
