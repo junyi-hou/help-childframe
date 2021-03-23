@@ -46,16 +46,14 @@
   :group 'help-childframe)
 
 (defconst help-childframe--init-parameters
-  `((parent-frame . ,(selected-frame))
-
-    (left . -1)
+  `((left . -1)
     (top . -1)
     (width  . ,(* help-childframe-width (default-font-width)))
     (height  . 0)
 
     (no-accept-focus . t)
     (no-focus-on-map . t)
-    (internal-border-width . 3)
+    (internal-border-width . 1)
     (vertical-scroll-bars . right)
     (scroll-bar-width . 10)
     (horizontal-scroll-bars . nil)
@@ -209,7 +207,8 @@
   ;; Then create frame if needed
   (unless (and help-childframe--frame (frame-live-p help-childframe--frame))
     (setq help-childframe--frame
-          (make-frame help-childframe--init-parameters)))
+          (make-frame `(,@help-childframe--init-parameters
+                        (parent-frame . ,(selected-frame))))))
 
   (with-selected-frame help-childframe--frame
     (delete-other-windows)
