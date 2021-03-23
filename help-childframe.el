@@ -38,6 +38,8 @@
 (defcustom help-childframe-backend-alist
   `((emacs-lisp-mode . ,(if (featurep 'helpful) 'help-childframe--helpful-backend
                           'help-childframe--help-backend))
+    (lisp-interaction-mode . ,(if (featurep 'helpful) 'help-childframe--helpful-backend
+                                'help-childframe--help-backend))
     (python-mode . help-childframe--eglot-backend))
   "List of (major-mode . backend) where \"backend\" is a function that takes a symbol as augment and return the help text for that symbol. See see `help-childframe--eglot-backend' for example."
   :type '(repeat (symbol function))
